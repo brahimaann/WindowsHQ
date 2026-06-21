@@ -260,6 +260,7 @@ export class MemoryFileSystem {
     this.mkdir('C:/Desktop');
     this.mkdir('C:/My Documents');
     this.mkdir('C:/Recycled');
+    this.mkdir('C:/Sanktuary Net');
 
     // Parse the site source files into C:/Program Files/Source Code
     this.mkdir('C:/Program Files/Source Code');
@@ -296,10 +297,20 @@ export class MemoryFileSystem {
 
     parseIndexNode(fsIndex, sourceCodeFolder, 'C:/Program Files/Source Code');
 
-    // Populate welcome text on Desktop
+    // Populate notes and files on Desktop and in Recycled folder
     this.writeFile(
-      'C:/Desktop/Welcome.txt',
-      `Welcome to Windows 98 Exact Clone!\n\nThis is a pixel-perfect recreation of the classic web desktop environment.\n\nCreated using Vite, TypeScript, and native layouts.\nDouble-click the desktop icons to run apps.`
+      'C:/Desktop/NOTES.txt',
+      `Research outline for Ppls Library entries:\n\n` +
+      `- Cross-reference Somerset v Stewart (1772) with regional courts in Jamaica.\n` +
+      `- Add primary documents on the Manden Charter's ecological articles.\n` +
+      `- Trace the 1945 Manchester Congress back to earlier pan-African conferences.\n\n` +
+      `also — new burna boy album is insane. track 7 especially. need to connect that rhythm pattern back to the yoruba talking drum lineage for the piece im writing.`
+    );
+    this.writeFile(
+      'C:/Recycled/Wakanda_draft.txt',
+      `Title: Speculative Sovereignty: Wakanda and the African Imagination\n` +
+      `Draft Status: SCRAPPED (Do not publish)\n\n` +
+      `Note: I'm deleting this draft. While Black Panther's Wakanda has captured global attention, analyzing a fictional narrative in a library dedicated to material decolonization feels counterproductive. We need to focus on real historical precedents of self-determination, like King Piye, the Kingdom of Kush, and Thomas Sankara's Burkina Faso. Speculative fiction is a powerful cultural tool, but it shouldn't replace or overshadow the actual, documented, and hard-fought struggles of real societies.`
     );
     this.writeFile(
       'C:/My Documents/readme.txt',

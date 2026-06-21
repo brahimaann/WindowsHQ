@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type AppType = 'notepad' | 'calculator' | 'soundrec' | 'explorer' | 'iframe' | 'display-properties' | 'webradio' | 'pokemon';
+export type AppType = 'notepad' | 'calculator' | 'soundrec' | 'explorer' | 'iframe' | 'internet-explorer' | 'display-properties' | 'webradio' | 'pokemon' | 'pong' | 'africaonly' | 'video-folder' | 'video-player' | 'ppls-story' | 'ppls-thread-viewer' | 'ppls-local-echo';
 
 export interface WindowInstance {
   id: string;
@@ -76,8 +76,8 @@ export const useWindowManager = create<WindowManagerState>((set) => ({
       computedWidth = 275;
       computedHeight = 348;
     } else if (spec.appType === 'pokemon') {
-      computedWidth = 340;
-      computedHeight = 580;
+      computedWidth = Math.min(520, Math.round(desktopWidth * 0.65));
+      computedHeight = Math.min(520, Math.round(desktopHeight * 0.80));
     } else if (spec.appType === 'calculator') {
       computedWidth = 260;
       computedHeight = 260;
@@ -93,6 +93,18 @@ export const useWindowManager = create<WindowManagerState>((set) => ({
     } else if (spec.id === 'msdos') {
       computedWidth = Math.max(400, Math.round(desktopWidth * 0.70));
       computedHeight = Math.max(300, Math.round(desktopHeight * 0.60));
+    } else if (spec.appType === 'ppls-story') {
+      computedWidth = Math.max(600, Math.round(desktopWidth * 0.80));
+      computedHeight = Math.max(450, Math.round(desktopHeight * 0.82));
+    } else if (spec.appType === 'ppls-thread-viewer') {
+      computedWidth = Math.max(420, Math.round(desktopWidth * 0.50));
+      computedHeight = Math.max(320, Math.round(desktopHeight * 0.55));
+    } else if (spec.appType === 'internet-explorer') {
+      computedWidth = Math.max(700, Math.round(desktopWidth * 0.85));
+      computedHeight = Math.max(480, Math.round(desktopHeight * 0.82));
+    } else if (spec.appType === 'ppls-local-echo') {
+      computedWidth = 460;
+      computedHeight = 350;
     } else {
       // General fallback
       if (computedWidth > desktopWidth * 0.9) {

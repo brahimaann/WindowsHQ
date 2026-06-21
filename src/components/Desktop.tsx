@@ -16,26 +16,28 @@ const DEFAULT_ICONS: DesktopIconDef[] = [
   // Column 1
   { id: 'my-computer', title: 'My Computer', icon: '/images/icons/my-computer-32x32.png', appType: 'explorer', appProps: { path: 'C:/' }, width: 640, height: 485 },
   { id: 'my-documents', title: 'My Documents', icon: '/images/icons/my-documents-32x32.png', appType: 'explorer', appProps: { path: 'C:/My Documents' }, width: 640, height: 480 },
-  { id: 'network', title: 'Network Neighborhood', icon: '/images/icons/network-32x32.png', appType: 'explorer', appProps: { path: 'C:/Network Neighborhood' }, width: 640, height: 480 },
+  { id: 'network', title: 'Sanktuary Net', icon: '/images/icons/network-32x32.png', appType: 'explorer', appProps: { path: 'C:/Sanktuary Net' }, width: 640, height: 480 },
   { id: 'recycle', title: 'Recycle Bin', icon: '/images/icons/recycle-bin-32x32.png', appType: 'explorer', appProps: { path: 'C:/Recycled' }, width: 640, height: 480 },
-  { id: 'ie', title: 'Internet Explorer', icon: '/images/icons/internet-explorer-32x32.png', appType: 'iframe', appProps: { src: '/programs/homepage.html' }, width: 800, height: 600 },
+  { id: 'ie', title: 'Internet Explorer', icon: '/images/icons/internet-explorer-32x32.png', appType: 'internet-explorer', appProps: { src: 'https://en.m.wikipedia.org/wiki/African_history' }, width: 900, height: 640 },
+  { id: 'africaonly', title: 'AfricaOnly.TV', icon: '/images/icons/video-32x32.png', appType: 'africaonly', width: 900, height: 620 },
   { id: 'paint', title: 'Paint', icon: '/images/icons/paint-32x32.png', appType: 'iframe', appProps: { src: '/programs/jspaint/index.html' }, width: 800, height: 600 },
   { id: 'notepad', title: 'Notepad', icon: '/images/icons/notepad-32x32.png', appType: 'notepad', width: 480, height: 360 },
 
   // Column 2
-  { id: 'winamp', title: 'Winamp', icon: '/images/icons/winamp2-32x32.png', appType: 'iframe', appProps: { src: '/programs/winamp/index.html' }, width: 275, height: 348 },
   { id: 'pipes', title: '3D Pipes', icon: '/images/icons/pipes-32x32.png', appType: 'iframe', appProps: { src: '/programs/pipes/index.html#%7B%22hideUI%22%3Atrue%7D' }, width: 800, height: 600 },
-  { id: 'flowerbox', title: '3D Flower Box', icon: '/images/icons/themes-32x32.png', appType: 'iframe', appProps: { src: '/programs/3D-FlowerBox/index.html' }, width: 800, height: 600 },
-  { id: 'msdos', title: 'MS-DOS Prompt', icon: '/images/icons/msdos-32x32.png', appType: 'iframe', appProps: { src: '/programs/command/index.html' }, width: 640, height: 430 },
   { id: 'calculator', title: 'Calculator', icon: '/images/icons/calculator-32x32.png', appType: 'calculator', width: 260, height: 260 },
-  { id: 'minesweeper', title: 'Minesweeper', icon: '/images/icons/minesweeper-32x32.png', appType: 'iframe', appProps: { src: '/programs/minesweeper/index.html' }, width: 280, height: 345 },
   { id: 'soundrec', title: 'Sound Recorder', icon: '/images/icons/speaker-32x32.png', appType: 'soundrec', width: 280, height: 160 },
-  { id: 'solitaire', title: 'Solitaire', icon: '/images/icons/solitaire-32x32.png', appType: 'iframe', appProps: { src: '/programs/js-solitaire/index.html' }, width: 585, height: 410 },
 
   // Column 3
-  { id: 'pokemon', title: 'Pokémon Crystal', icon: '/images/icons/pokeball.svg', appType: 'pokemon', appProps: { src: '/programs/pokemon/index.html' }, width: 340, height: 580 },
+  { id: 'pong', title: 'Pong', icon: '/images/icons/pinball-32x32.png', appType: 'pong', width: 520, height: 380 },
   { id: 'powder-toy', title: 'Sandspiel (Powder)', icon: '/images/icons/pipes-32x32.png', appType: 'iframe', appProps: { src: 'https://sandspiel.club/' }, width: 800, height: 600 },
   { id: 'webradio', title: 'MRND Web Radio', icon: '/images/icons/speaker-32x32.png', appType: 'webradio', width: 280, height: 320 },
+
+  // Column 4 — Video Collections
+  { id: '4-d-ppl', title: '4 D PPL', icon: '/images/icons/video-32x32.png', appType: 'video-folder', appProps: { collectionId: '4-d-ppl' }, width: 620, height: 460 },
+  { id: 'we-d-ppl', title: 'WE D PPL', icon: '/images/icons/video-32x32.png', appType: 'video-folder', appProps: { collectionId: 'we-d-ppl' }, width: 620, height: 460 },
+  { id: 'by-d-ppl', title: 'BY D PPL', icon: '/images/icons/video-32x32.png', appType: 'video-folder', appProps: { collectionId: 'by-d-ppl' }, width: 620, height: 460 },
+  { id: 'ppls-story', title: 'Ppls Library', icon: '/images/icons/ppls-story-32x32.svg', appType: 'ppls-story', width: 800, height: 600 },
 ];
 
 export const Desktop: React.FC = () => {

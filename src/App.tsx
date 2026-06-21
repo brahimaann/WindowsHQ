@@ -11,6 +11,15 @@ import DisplayProperties from './apps/DisplayProperties';
 import WebRadio from './apps/WebRadio';
 import BootScreen from './components/BootScreen';
 import PokemonEmulator from './apps/PokemonEmulator';
+import Pong from './apps/Pong';
+import AfricaOnlyTV from './apps/AfricaOnlyTV';
+import VideoFolder from './apps/VideoFolder';
+import VideoPlayer from './apps/VideoPlayer';
+import PplsStory from './apps/PplsStory';
+import PplsThreadViewer from './apps/PplsThreadViewer';
+import LocalEchoTerminal from './apps/LocalEchoTerminal';
+import InternetExplorer from './apps/InternetExplorer';
+
 
 export const App: React.FC = () => {
   const { windows } = useWindowManager();
@@ -36,13 +45,14 @@ export const App: React.FC = () => {
   const W = windowSize.width;
   const H = windowSize.height;
 
-  // Make the border size responsive and smaller on larger screens (increased by 50% per user request)
-  // Large screens (W >= 1400): borderX = 33px, borderY = 33px
-  // Medium screens (1000 <= W < 1400): borderX = 51px, borderY = 51px
-  // Small screens (W < 1000): borderX = 66px, borderY = 66px
-  const borderX = W >= 1400 ? 33 : W >= 1000 ? 51 : 66;
-  const borderY = H >= 900 ? 33 : H >= 700 ? 51 : 66;
-  const borderBottom = borderY * 1.4; // bottom border is slightly larger for monitor controls look
+  // CRT bezel sizing — mobile gets a very thin frame so the screen area is maximised
+  // Large screens  (W >= 1400): 33px sides
+  // Medium screens (1000 <= W < 1400): 28px sides
+  // Small screens  (600 <= W < 1000): 12px sides
+  // Mobile         (W < 600):  8px sides
+  const borderX = W >= 1400 ? 33 : W >= 1000 ? 28 : W >= 600 ? 12 : 8;
+  const borderY = H >= 900 ? 33 : H >= 700 ? 28 : H >= 500 ? 10 : 8;
+  const borderBottom = W < 600 ? borderY * 1.2 : borderY * 1.4; // slimmer bottom chin on mobile
 
   const curveX = borderX * 0.2;
   const curveY = borderY * 0.2;
@@ -58,6 +68,8 @@ export const App: React.FC = () => {
         return <SoundRecorder />;
       case 'explorer':
         return <Explorer path={win.appProps?.path} windowId={win.id} />;
+      case 'internet-explorer':
+        return <InternetExplorer src={win.appProps?.src} windowId={win.id} />;
       case 'iframe':
         return (
           <iframe
@@ -73,6 +85,20 @@ export const App: React.FC = () => {
         return <WebRadio />;
       case 'pokemon':
         return <PokemonEmulator src={win.appProps?.src} />;
+      case 'pong':
+        return <Pong />;
+      case 'africaonly':
+        return <AfricaOnlyTV />;
+      case 'video-folder':
+        return <VideoFolder collectionId={win.appProps?.collectionId} />;
+      case 'ppls-story':
+        return <PplsStory />;
+      case 'ppls-thread-viewer':
+        return <PplsThreadViewer threadId={win.appProps?.threadId} />;
+      case 'ppls-local-echo':
+        return <LocalEchoTerminal />;
+      case 'video-player':
+        return <VideoPlayer videoSrc={win.appProps?.videoSrc} videoTitle={win.appProps?.videoTitle} videoArtist={win.appProps?.videoArtist} />;
       default:
         return <div className="p-4">Unknown Application</div>;
     }

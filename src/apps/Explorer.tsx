@@ -48,7 +48,7 @@ export const Explorer: React.FC<ExplorerProps> = ({ path: initialPath = 'C:/', w
 
   const isNetworkPath = (path: string) => {
     const p = path.toLowerCase().trim();
-    return p === 'network neighborhood' || p === 'c:/network neighborhood';
+    return p === 'sanktuary net' || p === 'c:/sanktuary net';
   };
 
   const handleCreateFolder = () => {
@@ -205,10 +205,10 @@ export const Explorer: React.FC<ExplorerProps> = ({ path: initialPath = 'C:/', w
     openWindow({
       id: `network-link-${link.id}`,
       title: `${link.title} - Internet Explorer`,
-      appType: 'iframe',
+      appType: 'internet-explorer',
       icon: '/images/icons/internet-explorer-16x16.png',
-      width: 800,
-      height: 600,
+      width: 900,
+      height: 640,
       appProps: { src: link.url },
     });
   };

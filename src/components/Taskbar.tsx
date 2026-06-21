@@ -15,6 +15,44 @@ export const Taskbar: React.FC = () => {
   const startMenuRef = useRef<HTMLDivElement>(null);
   const startButtonRef = useRef<HTMLButtonElement>(null);
 
+  // Local Echo pager states and effect
+  const isPplsStoryRunning = windows.some((w) => w.appType === 'ppls-story');
+  const [pagerBlink, setPagerBlink] = useState(true);
+
+  useEffect(() => {
+    if (!isPplsStoryRunning) return;
+    const interval = setInterval(() => {
+      setPagerBlink((b) => !b);
+    }, 600);
+    return () => clearInterval(interval);
+  }, [isPplsStoryRunning]);
+
+  const handlePagerClick = () => {
+    try {
+      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(2000, audioCtx.currentTime);
+      gainNode.gain.setValueAtTime(0.08, audioCtx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.005, audioCtx.currentTime + 0.15);
+      osc.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.15);
+    } catch (_) {}
+
+    openWindow({
+      id: 'ppls-local-echo',
+      title: '📡 Local Echo Detector',
+      appType: 'ppls-local-echo',
+      icon: '/images/icons/my-computer-16x16.png',
+      width: 460,
+      height: 350,
+    });
+  };
+
+
   // Update clock every second
   useEffect(() => {
     const updateClock = () => {
@@ -136,6 +174,22 @@ export const Taskbar: React.FC = () => {
         className="tray flex items-center h-[22px] px-2 m-[2px] bg-[#c0c0c0] border-2 border-inset text-xs text-black"
         style={{ borderStyle: 'solid', borderColor: '#808080 #fff #fff #808080' }}
       >
+        {isPplsStoryRunning && (
+          <button
+            onClick={handlePagerClick}
+            className={`mr-2 cursor-pointer border-none bg-transparent outline-none flex items-center justify-center ${
+              pagerBlink ? 'opacity-100' : 'opacity-30'
+            }`}
+            style={{
+              transition: 'opacity 0.25s',
+              fontSize: 14,
+              lineHeight: 1,
+            }}
+            title="📡 Click to check local history echo"
+          >
+            📟
+          </button>
+        )}
         <img
           src="/images/icons/speaker-16x16.png"
           alt="Volume"
@@ -171,7 +225,7 @@ export const Taskbar: React.FC = () => {
             </li>
             <li className="hover:bg-[#000080] hover:text-white group">
               <button
-                onClick={() => launchApp('network', 'Network Neighborhood', 'explorer', '/images/icons/network-16x16.png', 640, 480, { path: 'C:/Network Neighborhood' })}
+                onClick={() => launchApp('network', 'Sanktuary Net', 'explorer', '/images/icons/network-16x16.png', 640, 480, { path: 'C:/Sanktuary Net' })}
                 className="w-full text-left py-1 px-2 flex items-center"
               >
                 <img
@@ -179,7 +233,7 @@ export const Taskbar: React.FC = () => {
                   alt=""
                   className="w-6 h-6 mr-3 image-render-pixelated"
                 />
-                <span>Network Neighborhood</span>
+                <span>Sanktuary Net</span>
               </button>
             </li>
             <li className="hover:bg-[#000080] hover:text-white group">
@@ -234,48 +288,22 @@ export const Taskbar: React.FC = () => {
                 <span>Sound Recorder</span>
               </button>
             </li>
+            <li className="hover:bg-[#000080] hover:text-white group">
+              <button
+                onClick={() => launchApp('ppls-story', 'Ppls Library', 'ppls-story', '/images/icons/ppls-story-32x32.svg', 800, 600)}
+                className="w-full text-left py-1 px-2 flex items-center"
+              >
+                <img
+                  src="/images/icons/ppls-story-32x32.svg"
+                  alt=""
+                  className="w-6 h-6 mr-3 image-render-pixelated"
+                />
+                <span>Ppls Library</span>
+              </button>
+            </li>
 
             <hr className="my-1 border-t border-gray-400 border-b border-white" />
 
-            <li className="hover:bg-[#000080] hover:text-white group">
-              <button
-                onClick={() => launchApp('msdos', 'MS-DOS Prompt', 'iframe', '/images/icons/msdos-16x16.png', 640, 430, { src: '/programs/command/index.html' })}
-                className="w-full text-left py-1 px-2 flex items-center"
-              >
-                <img
-                  src="/images/icons/msdos-32x32.png"
-                  alt=""
-                  className="w-6 h-6 mr-3 image-render-pixelated"
-                />
-                <span>MS-DOS Prompt</span>
-              </button>
-            </li>
-            <li className="hover:bg-[#000080] hover:text-white group">
-              <button
-                onClick={() => launchApp('minesweeper', 'Minesweeper', 'iframe', '/images/icons/minesweeper-16x16.png', 280, 345, { src: '/programs/minesweeper/index.html' })}
-                className="w-full text-left py-1 px-2 flex items-center"
-              >
-                <img
-                  src="/images/icons/minesweeper-32x32.png"
-                  alt=""
-                  className="w-6 h-6 mr-3 image-render-pixelated"
-                />
-                <span>Minesweeper</span>
-              </button>
-            </li>
-            <li className="hover:bg-[#000080] hover:text-white group">
-              <button
-                onClick={() => launchApp('solitaire', 'Solitaire', 'iframe', '/images/icons/solitaire-16x16.png', 585, 410, { src: '/programs/js-solitaire/index.html' })}
-                className="w-full text-left py-1 px-2 flex items-center"
-              >
-                <img
-                  src="/images/icons/solitaire-32x32.png"
-                  alt=""
-                  className="w-6 h-6 mr-3 image-render-pixelated"
-                />
-                <span>Solitaire</span>
-              </button>
-            </li>
             <li className="hover:bg-[#000080] hover:text-white group">
               <button
                 onClick={() => launchApp('pinball', '3D Pinball for Windows - Space Cadet', 'iframe', '/images/icons/pinball-16x16.png', 600, 440, { src: '/programs/pinball/space-cadet.html' })}
@@ -300,19 +328,6 @@ export const Taskbar: React.FC = () => {
                   className="w-6 h-6 mr-3 image-render-pixelated"
                 />
                 <span>Paint</span>
-              </button>
-            </li>
-            <li className="hover:bg-[#000080] hover:text-white group">
-              <button
-                onClick={() => launchApp('pokemon', 'Pokémon Crystal', 'pokemon', '/images/icons/solitaire-16x16.png', 340, 580, { src: '/programs/pokemon/index.html' })}
-                className="w-full text-left py-1 px-2 flex items-center"
-              >
-                <img
-                  src="/images/icons/solitaire-32x32.png"
-                  alt=""
-                  className="w-6 h-6 mr-3 image-render-pixelated"
-                />
-                <span>Pokémon Crystal</span>
               </button>
             </li>
             <li className="hover:bg-[#000080] hover:text-white group">

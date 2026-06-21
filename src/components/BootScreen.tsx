@@ -28,7 +28,7 @@ const LINES: TermLine[] = [
   { text: '' },
   { text: 'Detecting mouse... OK', parts: [{ text: 'Detecting mouse... ', color: '#aaaaaa' }, { text: 'OK', color: '#55ff55' }] },
   { text: 'Detecting touch support... FAILED', parts: [{ text: 'Detecting touch support... ', color: '#aaaaaa' }, { text: 'FAILED', color: '#ff5555' }] },
-  { text: 'Connecting to network... OK', parts: [{ text: 'Connecting to network... ', color: '#aaaaaa' }, { text: 'OK', color: '#55ff55' }] },
+  { text: 'Connecting to The Sanktuary... OK', parts: [{ text: 'Connecting to The Sanktuary... ', color: '#aaaaaa' }, { text: 'OK', color: '#55ff55' }] },
   { text: 'Initializing file system... OK', parts: [{ text: 'Initializing file system... ', color: '#aaaaaa' }, { text: 'OK', color: '#55ff55' }] },
   { text: 'Loading system themes... OK', parts: [{ text: 'Loading system themes... ', color: '#aaaaaa' }, { text: 'OK', color: '#55ff55' }] },
   { text: 'Initializing Recycle Bin... OK', parts: [{ text: 'Initializing Recycle Bin... ', color: '#aaaaaa' }, { text: 'OK', color: '#55ff55' }] },

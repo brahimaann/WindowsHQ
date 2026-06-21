@@ -266,3 +266,23 @@
 	text-decoration-skip: none;
     text-decoration-skip-ink: none;
 }
+
+@keyframes ie-progress {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(280%); }
+}
+
+/* ── ACTIVE TITLE BAR (was navy→blue, now copper) ── */
+.win-titlebar-active,
+.titlebar-active,
+.start-menu-titlebar {
+  background: linear-gradient(to right, var(--sabr-title-active-start), var(--sabr-title-active-end)) !important;
+  color: #fff !important;
+}
+
+/* ── INACTIVE TITLE BAR (was gray→light gray, now warm gray) ── */
+.win-titlebar-inactive,
+.titlebar-inactive {
+  background: linear-gradient(to right, var(--sabr-title-inactive-start), var(--sabr-title-inactive-end)) !important;
+  color: #D0C8C0 !important;
+}
