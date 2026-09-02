@@ -4,6 +4,7 @@ import Desktop from './components/Desktop';
 import Taskbar from './components/Taskbar';
 import Window from './components/Window';
 import BootScreen from './components/BootScreen';
+import Screensaver from './components/Screensaver';
 
 // Code-split applications for fast initial boot and minimal bundle
 const Notepad = lazy(() => import('./apps/Notepad'));
@@ -21,10 +22,17 @@ const PplsStory = lazy(() => import('./apps/PplsStory'));
 const PplsThreadViewer = lazy(() => import('./apps/PplsThreadViewer'));
 const LocalEchoTerminal = lazy(() => import('./apps/LocalEchoTerminal'));
 const InternetExplorer = lazy(() => import('./apps/InternetExplorer'));
+const Winamp = lazy(() => import('./apps/Winamp'));
 
 
 export const App: React.FC = () => {
-  const { windows } = useWindowManager();
+  const {
+    windows,
+    screensaver,
+    screensaverTimeout,
+    isScreensaverActive,
+    setScreensaverActive,
+  } = useWindowManager();
   const [isBooting, setIsBooting] = useState(true);
   const [powerOnClass, setPowerOnClass] = useState('');
 
@@ -43,6 +51,37 @@ export const App: React.FC = () => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // Screensaver idle detection
+  useEffect(() => {
+    if (isBooting || screensaver === 'none') return;
+
+    let timeoutId: ReturnType<typeof setTimeout>;
+    const resetTimer = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        setScreensaverActive(true);
+      }, screensaverTimeout * 60 * 1000);
+    };
+
+    const handleActivity = () => {
+      if (!isScreensaverActive) {
+        resetTimer();
+      }
+    };
+
+    resetTimer();
+    window.addEventListener('mousemove', handleActivity);
+    window.addEventListener('keydown', handleActivity);
+    window.addEventListener('pointerdown', handleActivity);
+
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('mousemove', handleActivity);
+      window.removeEventListener('keydown', handleActivity);
+      window.removeEventListener('pointerdown', handleActivity);
+    };
+  }, [isBooting, screensaver, screensaverTimeout, isScreensaverActive, setScreensaverActive]);
 
   const W = windowSize.width;
   const H = windowSize.height;
@@ -118,6 +157,9 @@ export const App: React.FC = () => {
       case 'video-player':
         content = <VideoPlayer videoSrc={win.appProps?.videoSrc} videoTitle={win.appProps?.videoTitle} videoArtist={win.appProps?.videoArtist} />;
         break;
+      case 'winamp':
+        content = <Winamp />;
+        break;
       default:
         content = <div className="p-4">Unknown Application</div>;
     }
@@ -182,6 +224,13 @@ export const App: React.FC = () => {
         <div className="crt-screen-vignette" />
         <div className="crt-screen-filter" />
         <div className="crt-screen-flicker" />
+
+        {isScreensaverActive && (
+          <Screensaver
+            type={screensaver}
+            onDismiss={() => setScreensaverActive(false)}
+          />
+        )}
 
         {isBooting ? (
           /* BIOS boot terminal — rendered INSIDE the CRT screen */

@@ -23,6 +23,7 @@ const DEFAULT_ICONS: DesktopIconDef[] = [
   { id: 'notepad', title: 'Notepad', icon: '/images/icons/notepad-32x32.png', appType: 'notepad', width: 480, height: 360 },
 
   // Column 2
+  { id: 'winamp', title: 'Winamp', icon: '/images/icons/winamp2-32x32.png', appType: 'winamp', width: 275, height: 348 },
   { id: 'pipes', title: '3D Pipes', icon: '/images/icons/pipes-32x32.png', appType: 'iframe', appProps: { src: '/programs/pipes/index.html#%7B%22hideUI%22%3Atrue%7D' }, width: 800, height: 600 },
 
   // Column 3
@@ -36,6 +37,13 @@ export const Desktop: React.FC = () => {
   const [vfsIcons, setVfsIcons] = useState<DesktopIconDef[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [marquee, setMarquee] = useState<{ startX: number; startY: number; currentX: number; currentY: number } | null>(null);
+
+  // Freeform Desktop Icon positions and drag state
+  const [positions, setPositions] = useState<{ [id: string]: { x: number; y: number } }>({});
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [dragOffset, setDragOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [currentDragPos, setCurrentDragPos] = useState<{ x: number; y: number } | null>(null);
+  const dragMoved = useRef(false);
   
   // Custom right click context menu state
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; visible: boolean } | null>(null);
@@ -199,6 +207,76 @@ export const Desktop: React.FC = () => {
     document.addEventListener('pointerup', handlePointerUp);
   };
 
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('hq_os_desktop_icon_positions');
+      if (saved) {
+        setPositions(JSON.parse(saved));
+      }
+    } catch (_) {}
+  }, []);
+
+  const getIconPos = (id: string, index: number) => {
+    if (positions[id]) return positions[id];
+    const row = index % 7;
+    const col = Math.floor(index / 7);
+    return {
+      x: 16 + col * 82,
+      y: 16 + row * 82,
+    };
+  };
+
+  const handleIconPointerDown = (id: string, e: React.PointerEvent) => {
+    if (e.button !== 0) return;
+    handleIconClick(id, e);
+    e.currentTarget.setPointerCapture(e.pointerId);
+
+    const parentRect = desktopRef.current?.getBoundingClientRect() || { left: 0, top: 0 };
+    const curPos = positions[id] || getIconPos(id, allIcons.findIndex((i) => i.id === id));
+
+    dragMoved.current = false;
+    setDraggingId(id);
+    setDragOffset({
+      x: e.clientX - parentRect.left - curPos.x,
+      y: e.clientY - parentRect.top - curPos.y,
+    });
+    setCurrentDragPos(curPos);
+  };
+
+  const handleIconPointerMove = (id: string, e: React.PointerEvent) => {
+    if (draggingId !== id) return;
+    dragMoved.current = true;
+    const parentRect = desktopRef.current?.getBoundingClientRect() || { left: 0, top: 0 };
+    const newX = Math.max(8, e.clientX - parentRect.left - dragOffset.x);
+    const newY = Math.max(8, e.clientY - parentRect.top - dragOffset.y);
+    setCurrentDragPos({ x: newX, y: newY });
+  };
+
+  const handleIconPointerUp = (id: string, e: React.PointerEvent) => {
+    if (draggingId !== id) return;
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch (_) {}
+
+    if (dragMoved.current && currentDragPos) {
+      // Snap to 82px Win98 desktop grid
+      const snappedX = Math.max(16, Math.round((currentDragPos.x - 16) / 82) * 82 + 16);
+      const snappedY = Math.max(16, Math.round((currentDragPos.y - 16) / 82) * 82 + 16);
+      const finalPos = { x: snappedX, y: snappedY };
+
+      setPositions((prev) => {
+        const next = { ...prev, [id]: finalPos };
+        try {
+          localStorage.setItem('hq_os_desktop_icon_positions', JSON.stringify(next));
+        } catch (_) {}
+        return next;
+      });
+    }
+
+    setDraggingId(null);
+    setCurrentDragPos(null);
+  };
+
   const handleIconClick = (id: string, e: React.PointerEvent) => {
     e.stopPropagation();
     setContextMenu(null);
@@ -325,7 +403,7 @@ export const Desktop: React.FC = () => {
       onContextMenu={handleContextMenu}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
-      className="desktop folder-view absolute left-0 top-0 w-full h-[calc(100%-30px)] p-4 flex flex-col flex-wrap content-start gap-x-1 gap-y-1 select-none overflow-hidden"
+      className="desktop folder-view absolute left-0 top-0 w-full h-[calc(100%-30px)] select-none overflow-hidden"
       style={{
         backgroundColor: bgColor,
         backgroundImage: wallpaper ? `url(${wallpaper})` : 'none',
@@ -335,20 +413,27 @@ export const Desktop: React.FC = () => {
       }}
       data-view-mode="DESKTOP"
     >
-      {allIcons.map((icon) => {
+      {allIcons.map((icon, index) => {
         const isSelected = selectedIds.includes(icon.id);
+        const isDragging = draggingId === icon.id;
+        const pos = isDragging && currentDragPos ? currentDragPos : getIconPos(icon.id, index);
         return (
           <div
             key={icon.id}
             ref={(el) => { iconRefs.current[icon.id] = el; }}
-            onPointerDown={(e) => handleIconClick(icon.id, e)}
+            onPointerDown={(e) => handleIconPointerDown(icon.id, e)}
+            onPointerMove={(e) => handleIconPointerMove(icon.id, e)}
+            onPointerUp={(e) => handleIconPointerUp(icon.id, e)}
             onDoubleClick={() => handleIconDoubleClick(icon)}
             onContextMenu={(e) => handleIconContextMenu(e, icon)}
             className={`desktop-icon w-[75px] h-[75px] flex flex-col items-center justify-center text-center cursor-default outline-none rounded p-1 ${
               isSelected ? 'focused selected' : ''
             }`}
             style={{
-              position: 'relative',
+              position: 'absolute',
+              left: `${pos.x}px`,
+              top: `${pos.y}px`,
+              zIndex: isDragging ? 50 : 1,
               touchAction: 'none',
             }}
           >

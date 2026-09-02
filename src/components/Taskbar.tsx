@@ -274,6 +274,19 @@ export const Taskbar: React.FC = () => {
             </li>
             <li className="hover:bg-[#000080] hover:text-white group">
               <button
+                onClick={() => launchApp('winamp', 'Winamp', 'winamp', '/images/icons/winamp2-16x16.png', 275, 348)}
+                className="w-full text-left py-1 px-2 flex items-center"
+              >
+                <img
+                  src="/images/icons/winamp2-32x32.png"
+                  alt=""
+                  className="w-6 h-6 mr-3 image-render-pixelated"
+                />
+                <span>Winamp</span>
+              </button>
+            </li>
+            <li className="hover:bg-[#000080] hover:text-white group">
+              <button
                 onClick={() => launchApp('ppls-story', 'Ppls Library', 'ppls-story', '/images/icons/ppls-story-32x32.svg', 800, 600)}
                 className="w-full text-left py-1 px-2 flex items-center"
               >

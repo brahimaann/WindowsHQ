@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import sound from '../utils/sound';
 
-export type AppType = 'notepad' | 'calculator' | 'soundrec' | 'explorer' | 'iframe' | 'internet-explorer' | 'display-properties' | 'webradio' | 'pokemon' | 'pong' | 'africaonly' | 'video-folder' | 'video-player' | 'ppls-story' | 'ppls-thread-viewer' | 'ppls-local-echo';
+export type AppType = 'notepad' | 'calculator' | 'soundrec' | 'explorer' | 'iframe' | 'internet-explorer' | 'display-properties' | 'webradio' | 'pokemon' | 'pong' | 'africaonly' | 'video-folder' | 'video-player' | 'ppls-story' | 'ppls-thread-viewer' | 'ppls-local-echo' | 'winamp';
 
 export interface WindowInstance {
   id: string;
@@ -18,6 +18,8 @@ export interface WindowInstance {
   zIndex: number;
   focused: boolean;
 }
+
+export type ScreensaverType = 'pipes' | 'starfield' | 'none';
 
 interface WindowManagerState {
   windows: WindowInstance[];
@@ -36,6 +38,12 @@ interface WindowManagerState {
   bgColor: string;
   setWallpaper: (wp: string) => void;
   setBgColor: (color: string) => void;
+  screensaver: ScreensaverType;
+  screensaverTimeout: number;
+  isScreensaverActive: boolean;
+  setScreensaver: (s: ScreensaverType) => void;
+  setScreensaverTimeout: (mins: number) => void;
+  setScreensaverActive: (active: boolean) => void;
 }
 
 export const useWindowManager = create<WindowManagerState>((set) => ({
@@ -207,4 +215,16 @@ export const useWindowManager = create<WindowManagerState>((set) => ({
   bgColor: '#008080',
   setWallpaper: (wp) => set({ wallpaper: wp }),
   setBgColor: (color) => set({ bgColor: color }),
+  screensaver: (typeof localStorage !== 'undefined' ? (localStorage.getItem('hq_os_screensaver') as ScreensaverType) : null) || 'pipes',
+  screensaverTimeout: (typeof localStorage !== 'undefined' && localStorage.getItem('hq_os_screensaver_timeout') ? Number(localStorage.getItem('hq_os_screensaver_timeout')) : 2),
+  isScreensaverActive: false,
+  setScreensaver: (s) => {
+    try { localStorage.setItem('hq_os_screensaver', s); } catch (_) {}
+    set({ screensaver: s });
+  },
+  setScreensaverTimeout: (mins) => {
+    try { localStorage.setItem('hq_os_screensaver_timeout', String(mins)); } catch (_) {}
+    set({ screensaverTimeout: mins });
+  },
+  setScreensaverActive: (active) => set({ isScreensaverActive: active }),
 }));
