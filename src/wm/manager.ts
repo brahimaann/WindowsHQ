@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import sound from '../utils/sound';
 
 export type AppType = 'notepad' | 'calculator' | 'soundrec' | 'explorer' | 'iframe' | 'internet-explorer' | 'display-properties' | 'webradio' | 'pokemon' | 'pong' | 'africaonly' | 'video-folder' | 'video-player' | 'ppls-story' | 'ppls-thread-viewer' | 'ppls-local-echo';
 
@@ -43,6 +44,7 @@ export const useWindowManager = create<WindowManagerState>((set) => ({
   startMenuOpen: false,
 
   openWindow: (spec) => set((state) => {
+    sound.playClick();
     const existing = state.windows.find((w) => w.id === spec.id);
     if (existing) {
       const nextZ = state.maxZIndex + 1;

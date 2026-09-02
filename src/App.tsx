@@ -1,24 +1,26 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { useWindowManager } from './wm/manager';
 import Desktop from './components/Desktop';
 import Taskbar from './components/Taskbar';
 import Window from './components/Window';
-import Notepad from './apps/Notepad';
-import Calculator from './apps/Calculator';
-import SoundRecorder from './apps/SoundRecorder';
-import Explorer from './apps/Explorer';
-import DisplayProperties from './apps/DisplayProperties';
-import WebRadio from './apps/WebRadio';
 import BootScreen from './components/BootScreen';
-import PokemonEmulator from './apps/PokemonEmulator';
-import Pong from './apps/Pong';
-import AfricaOnlyTV from './apps/AfricaOnlyTV';
-import VideoFolder from './apps/VideoFolder';
-import VideoPlayer from './apps/VideoPlayer';
-import PplsStory from './apps/PplsStory';
-import PplsThreadViewer from './apps/PplsThreadViewer';
-import LocalEchoTerminal from './apps/LocalEchoTerminal';
-import InternetExplorer from './apps/InternetExplorer';
+
+// Code-split applications for fast initial boot and minimal bundle
+const Notepad = lazy(() => import('./apps/Notepad'));
+const Calculator = lazy(() => import('./apps/Calculator'));
+const SoundRecorder = lazy(() => import('./apps/SoundRecorder'));
+const Explorer = lazy(() => import('./apps/Explorer'));
+const DisplayProperties = lazy(() => import('./apps/DisplayProperties'));
+const WebRadio = lazy(() => import('./apps/WebRadio'));
+const PokemonEmulator = lazy(() => import('./apps/PokemonEmulator'));
+const Pong = lazy(() => import('./apps/Pong'));
+const AfricaOnlyTV = lazy(() => import('./apps/AfricaOnlyTV'));
+const VideoFolder = lazy(() => import('./apps/VideoFolder'));
+const VideoPlayer = lazy(() => import('./apps/VideoPlayer'));
+const PplsStory = lazy(() => import('./apps/PplsStory'));
+const PplsThreadViewer = lazy(() => import('./apps/PplsThreadViewer'));
+const LocalEchoTerminal = lazy(() => import('./apps/LocalEchoTerminal'));
+const InternetExplorer = lazy(() => import('./apps/InternetExplorer'));
 
 
 export const App: React.FC = () => {
@@ -59,19 +61,25 @@ export const App: React.FC = () => {
 
 
   const renderAppContent = (win: any) => {
+    let content: React.ReactNode;
     switch (win.appType) {
       case 'notepad':
-        return <Notepad filePath={win.appProps?.filePath} />;
+        content = <Notepad filePath={win.appProps?.filePath} />;
+        break;
       case 'calculator':
-        return <Calculator isFocused={win.focused} />;
+        content = <Calculator isFocused={win.focused} />;
+        break;
       case 'soundrec':
-        return <SoundRecorder />;
+        content = <SoundRecorder />;
+        break;
       case 'explorer':
-        return <Explorer path={win.appProps?.path} windowId={win.id} />;
+        content = <Explorer path={win.appProps?.path} windowId={win.id} />;
+        break;
       case 'internet-explorer':
-        return <InternetExplorer src={win.appProps?.src} windowId={win.id} />;
+        content = <InternetExplorer src={win.appProps?.src} windowId={win.id} />;
+        break;
       case 'iframe':
-        return (
+        content = (
           <iframe
             src={win.appProps?.src}
             className="w-full h-full border-none bg-white"
@@ -79,29 +87,54 @@ export const App: React.FC = () => {
             sandbox="allow-same-origin allow-scripts allow-forms allow-modals allow-popups allow-downloads"
           />
         );
+        break;
       case 'display-properties':
-        return <DisplayProperties />;
+        content = <DisplayProperties />;
+        break;
       case 'webradio':
-        return <WebRadio />;
+        content = <WebRadio />;
+        break;
       case 'pokemon':
-        return <PokemonEmulator src={win.appProps?.src} />;
+        content = <PokemonEmulator src={win.appProps?.src} />;
+        break;
       case 'pong':
-        return <Pong />;
+        content = <Pong />;
+        break;
       case 'africaonly':
-        return <AfricaOnlyTV />;
+        content = <AfricaOnlyTV />;
+        break;
       case 'video-folder':
-        return <VideoFolder collectionId={win.appProps?.collectionId} />;
+        content = <VideoFolder collectionId={win.appProps?.collectionId} />;
+        break;
       case 'ppls-story':
-        return <PplsStory />;
+        content = <PplsStory />;
+        break;
       case 'ppls-thread-viewer':
-        return <PplsThreadViewer threadId={win.appProps?.threadId} />;
+        content = <PplsThreadViewer threadId={win.appProps?.threadId} />;
+        break;
       case 'ppls-local-echo':
-        return <LocalEchoTerminal />;
+        content = <LocalEchoTerminal />;
+        break;
       case 'video-player':
-        return <VideoPlayer videoSrc={win.appProps?.videoSrc} videoTitle={win.appProps?.videoTitle} videoArtist={win.appProps?.videoArtist} />;
+        content = <VideoPlayer videoSrc={win.appProps?.videoSrc} videoTitle={win.appProps?.videoTitle} videoArtist={win.appProps?.videoArtist} />;
+        break;
       default:
-        return <div className="p-4">Unknown Application</div>;
+        content = <div className="p-4">Unknown Application</div>;
     }
+
+    return (
+      <Suspense
+        fallback={
+          <div className="w-full h-full flex items-center justify-center bg-[#c0c0c0] font-mono text-xs text-gray-700">
+            <div className="border border-t-white border-l-white border-r-gray-800 border-b-gray-800 p-2 bg-[#d4d0c8] shadow-sm">
+              Loading...
+            </div>
+          </div>
+        }
+      >
+        {content}
+      </Suspense>
+    );
   };
 
   const handleBootComplete = () => {

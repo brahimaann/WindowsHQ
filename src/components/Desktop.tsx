@@ -20,24 +20,15 @@ const DEFAULT_ICONS: DesktopIconDef[] = [
   { id: 'recycle', title: 'Recycle Bin', icon: '/images/icons/recycle-bin-32x32.png', appType: 'explorer', appProps: { path: 'C:/Recycled' }, width: 640, height: 480 },
   { id: 'ie', title: 'Internet Explorer', icon: '/images/icons/internet-explorer-32x32.png', appType: 'internet-explorer', appProps: { src: 'https://en.m.wikipedia.org/wiki/African_history' }, width: 900, height: 640 },
   { id: 'africaonly', title: 'AfricaOnly.TV', icon: '/images/icons/video-32x32.png', appType: 'africaonly', width: 900, height: 620 },
-  { id: 'paint', title: 'Paint', icon: '/images/icons/paint-32x32.png', appType: 'iframe', appProps: { src: '/programs/jspaint/index.html' }, width: 800, height: 600 },
   { id: 'notepad', title: 'Notepad', icon: '/images/icons/notepad-32x32.png', appType: 'notepad', width: 480, height: 360 },
 
   // Column 2
   { id: 'pipes', title: '3D Pipes', icon: '/images/icons/pipes-32x32.png', appType: 'iframe', appProps: { src: '/programs/pipes/index.html#%7B%22hideUI%22%3Atrue%7D' }, width: 800, height: 600 },
-  { id: 'calculator', title: 'Calculator', icon: '/images/icons/calculator-32x32.png', appType: 'calculator', width: 260, height: 260 },
-  { id: 'soundrec', title: 'Sound Recorder', icon: '/images/icons/speaker-32x32.png', appType: 'soundrec', width: 280, height: 160 },
 
   // Column 3
   { id: 'pong', title: 'Pong', icon: '/images/icons/pinball-32x32.png', appType: 'pong', width: 520, height: 380 },
   { id: 'powder-toy', title: 'Sandspiel (Powder)', icon: '/images/icons/pipes-32x32.png', appType: 'iframe', appProps: { src: 'https://sandspiel.club/' }, width: 800, height: 600 },
   { id: 'webradio', title: 'MRND Web Radio', icon: '/images/icons/speaker-32x32.png', appType: 'webradio', width: 280, height: 320 },
-
-  // Column 4 — Video Collections
-  { id: '4-d-ppl', title: '4 D PPL', icon: '/images/icons/video-32x32.png', appType: 'video-folder', appProps: { collectionId: '4-d-ppl' }, width: 620, height: 460 },
-  { id: 'we-d-ppl', title: 'WE D PPL', icon: '/images/icons/video-32x32.png', appType: 'video-folder', appProps: { collectionId: 'we-d-ppl' }, width: 620, height: 460 },
-  { id: 'by-d-ppl', title: 'BY D PPL', icon: '/images/icons/video-32x32.png', appType: 'video-folder', appProps: { collectionId: 'by-d-ppl' }, width: 620, height: 460 },
-  { id: 'ppls-story', title: 'Ppls Library', icon: '/images/icons/ppls-story-32x32.svg', appType: 'ppls-story', width: 800, height: 600 },
 ];
 
 export const Desktop: React.FC = () => {
@@ -48,6 +39,7 @@ export const Desktop: React.FC = () => {
   
   // Custom right click context menu state
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; visible: boolean } | null>(null);
+  const [iconContextMenu, setIconContextMenu] = useState<{ x: number; y: number; icon: DesktopIconDef } | null>(null);
   const [activeSubMenu, setActiveSubMenu] = useState<string | null>(null);
 
   const desktopRef = useRef<HTMLDivElement>(null);
@@ -60,7 +52,7 @@ export const Desktop: React.FC = () => {
         const title = file.name;
         const id = `vfs-desktop-${title.replace(/[^a-zA-Z0-9]/g, '-')}`;
         const isTxt = title.endsWith('.txt');
-        const icon = isTxt ? '/images/icons/notepad-doc-32x32.png' : '/images/icons/folder-32x32.png';
+        const icon = isTxt ? '/images/icons/notepad-file-32x32.png' : '/images/icons/folder-32x32.png';
         const appType = isTxt ? 'notepad' : 'explorer';
         const appProps = isTxt ? { filePath: `C:/Desktop/${title}` } : { path: `C:/Desktop/${title}` };
         return {
@@ -79,6 +71,41 @@ export const Desktop: React.FC = () => {
     }
   };
 
+  // Custom Win98 Confirm Dialog state
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    icon?: DesktopIconDef;
+    onConfirm: () => void;
+  } | null>(null);
+
+  const handleDeleteIcon = (icon: DesktopIconDef) => {
+    setIconContextMenu(null);
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Confirm File Delete',
+      message: `Are you sure you want to send '${icon.title}' to the Recycle Bin?`,
+      icon,
+      onConfirm: () => {
+        try {
+          const path = `C:/Desktop/${icon.title}`;
+          if (vfs.exists(path)) {
+            const stat = vfs.stat(path);
+            if (stat?.isDirectory) {
+              vfs.rmdir(path);
+            } else {
+              vfs.unlink(path);
+            }
+          }
+        } catch (err: any) {
+          console.error(err);
+        }
+        setConfirmDialog(null);
+      },
+    });
+  };
+
   useEffect(() => {
     loadVfsDesktopFiles();
     const unsubscribe = vfs.subscribe(() => {
@@ -86,6 +113,19 @@ export const Desktop: React.FC = () => {
     });
     return unsubscribe;
   }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Delete' && selectedIds.length > 0) {
+        const vfsSelected = vfsIcons.filter((icon) => selectedIds.includes(icon.id));
+        if (vfsSelected.length > 0) {
+          vfsSelected.forEach((icon) => handleDeleteIcon(icon));
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedIds, vfsIcons]);
 
   const allIcons = [...DEFAULT_ICONS, ...vfsIcons];
 
@@ -100,6 +140,7 @@ export const Desktop: React.FC = () => {
 
     // Dismiss context menu
     setContextMenu(null);
+    setIconContextMenu(null);
     setActiveSubMenu(null);
 
     if (e.button !== 0) return; // Only left click
@@ -213,6 +254,21 @@ export const Desktop: React.FC = () => {
     });
   };
 
+  const handleIconContextMenu = (e: React.MouseEvent, icon: DesktopIconDef) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setSelectedIds([icon.id]);
+    setContextMenu(null);
+    const rect = desktopRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    setIconContextMenu({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+      icon,
+    });
+  };
+
   const handleCreateNewFolder = () => {
     try {
       let folderName = 'New Folder';
@@ -287,6 +343,7 @@ export const Desktop: React.FC = () => {
             ref={(el) => { iconRefs.current[icon.id] = el; }}
             onPointerDown={(e) => handleIconClick(icon.id, e)}
             onDoubleClick={() => handleIconDoubleClick(icon)}
+            onContextMenu={(e) => handleIconContextMenu(e, icon)}
             className={`desktop-icon w-[75px] h-[75px] flex flex-col items-center justify-center text-center cursor-default outline-none rounded p-1 ${
               isSelected ? 'focused selected' : ''
             }`}
@@ -418,6 +475,80 @@ export const Desktop: React.FC = () => {
             className="hover:bg-[#000080] hover:text-white px-3 py-1 cursor-default"
           >
             Properties
+          </div>
+        </div>
+      )}
+
+      {/* Icon Right-Click Context Menu */}
+      {iconContextMenu && (
+        <div
+          className="context-menu absolute bg-[#c0c0c0] text-black border-2 border-outset p-[2px] z-[99999] select-none text-[11px] font-sans flex flex-col w-[140px] shadow"
+          style={{
+            left: `${iconContextMenu.x}px`,
+            top: `${iconContextMenu.y}px`,
+          }}
+        >
+          <div
+            onClick={() => {
+              handleIconDoubleClick(iconContextMenu.icon);
+              setIconContextMenu(null);
+            }}
+            className="hover:bg-[#000080] hover:text-white px-3 py-1 cursor-default font-bold"
+          >
+            Open
+          </div>
+          {iconContextMenu.icon.id.startsWith('vfs-desktop-') && (
+            <>
+              <div className="h-[1px] bg-gray-400 my-1"></div>
+              <div
+                onClick={() => handleDeleteIcon(iconContextMenu.icon)}
+                className="hover:bg-[#000080] hover:text-white px-3 py-1 cursor-default"
+              >
+                Delete
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Custom Win98 Confirm Dialog Modal */}
+      {confirmDialog && confirmDialog.isOpen && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/20 z-[999999] select-none">
+          <div className="os-window outset-deep bg-[#c0c0c0] w-[350px] text-black shadow-xl p-[2px]">
+            <div className="window-titlebar flex items-center justify-between px-2 py-1 font-bold text-white bg-gradient-to-r from-[#000080] to-[#1084d0] text-xs">
+              <span className="truncate">{confirmDialog.title}</span>
+              <button
+                onClick={() => setConfirmDialog(null)}
+                className="w-4 h-3.5 bg-[#c0c0c0] text-black flex items-center justify-center text-xs font-bold border border-outset active:border-inset"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-4 flex items-center gap-3">
+              <img
+                src="/images/icons/msg-warning-32x32.png"
+                onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                className="w-8 h-8 flex-shrink-0 image-render-pixelated"
+                alt="Warning"
+              />
+              <p className="text-xs leading-relaxed text-black break-words flex-1">
+                {confirmDialog.message}
+              </p>
+            </div>
+            <div className="flex justify-end gap-2 px-3 py-2 bg-[#c0c0c0]">
+              <button
+                onClick={() => confirmDialog.onConfirm()}
+                className="px-4 py-1 text-xs text-black border outset-deep bg-[#c0c0c0] active:inset-deep font-sans outline-none min-w-[60px] cursor-pointer"
+              >
+                Yes
+              </button>
+              <button
+                onClick={() => setConfirmDialog(null)}
+                className="px-4 py-1 text-xs text-black border outset-deep bg-[#c0c0c0] active:inset-deep font-sans outline-none min-w-[60px] cursor-pointer"
+              >
+                No
+              </button>
+            </div>
           </div>
         </div>
       )}

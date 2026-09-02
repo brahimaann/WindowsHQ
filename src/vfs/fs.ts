@@ -8,6 +8,56 @@ export interface VFSNode {
   updatedAt: number;
 }
 
+const IDB_NAME = 'hq_os_vfs_db';
+const STORE_NAME = 'files';
+
+function getDB(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    if (typeof window === 'undefined' || !window.indexedDB) {
+      return reject(new Error('IndexedDB not supported'));
+    }
+    const req = indexedDB.open(IDB_NAME, 1);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME, { keyPath: 'path' });
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function persistFile(path: string, content: string): Promise<void> {
+  try {
+    const db = await getDB();
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    tx.objectStore(STORE_NAME).put({ path, content, updatedAt: Date.now() });
+  } catch (_) {}
+}
+
+async function deletePersistedFile(path: string): Promise<void> {
+  try {
+    const db = await getDB();
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    tx.objectStore(STORE_NAME).delete(path);
+  } catch (_) {}
+}
+
+async function loadPersistedFiles(): Promise<{ path: string; content: string }[]> {
+  try {
+    const db = await getDB();
+    return new Promise((resolve) => {
+      const tx = db.transaction(STORE_NAME, 'readonly');
+      const req = tx.objectStore(STORE_NAME).getAll();
+      req.onsuccess = () => resolve(req.result || []);
+      req.onerror = () => resolve([]);
+    });
+  } catch {
+    return [];
+  }
+}
+
 export class MemoryFileSystem {
   private root: VFSNode;
   private listeners: Set<() => void> = new Set();
@@ -68,6 +118,16 @@ export class MemoryFileSystem {
     return this.getNode(this.normalizePath(path)) !== null;
   }
 
+  stat(path: string): { isDirectory: boolean; isFile: boolean } | null {
+    const parts = this.normalizePath(path);
+    const node = this.getNode(parts);
+    if (!node) return null;
+    return {
+      isDirectory: node.type === 'dir',
+      isFile: node.type === 'file',
+    };
+  }
+
   readdir(path: string): VFSNode[] {
     const parts = this.normalizePath(path);
     const node = this.getNode(parts);
@@ -84,7 +144,7 @@ export class MemoryFileSystem {
     return node.content || '';
   }
 
-  writeFile(path: string, content: string): void {
+  writeFile(path: string, content: string, shouldPersist: boolean = true): void {
     const parts = this.normalizePath(path);
     if (parts.length === 0) return;
 
@@ -113,6 +173,9 @@ export class MemoryFileSystem {
       content,
       updatedAt: Date.now(),
     };
+    if (shouldPersist) {
+      persistFile(path, content);
+    }
     this.notify();
   }
 
@@ -218,6 +281,7 @@ export class MemoryFileSystem {
       );
       if (matchedKey && parent.children[matchedKey]) {
         delete parent.children[matchedKey];
+        deletePersistedFile(path);
         this.notify();
         return;
       }
@@ -320,6 +384,16 @@ export class MemoryFileSystem {
     // Add classic system configuration files in root C:
     this.writeFile('C:/autoexec.bat', '@ECHO OFF\nPROMPT $P$G\nPATH C:\\WINDOWS;C:\\WINDOWS\\COMMAND\nSET TEMP=C:\\WINDOWS\\TEMP\nLH MSCDEX.EXE /D:mscd001\nLH SMARTDRV.EXE\necho Windows 98 is now loading...');
     this.writeFile('C:/config.sys', 'DEVICE=C:\\WINDOWS\\HIMEM.SYS\nDEVICE=C:\\WINDOWS\\EMM386.EXE NOEMS\nBUFFERS=15,0\nFILES=30\nDOS=HIGH,UMB\nLASTDRIVE=Z');
+
+    // Restore any user-created or edited files from persistent storage
+    loadPersistedFiles().then((savedFiles) => {
+      if (savedFiles && savedFiles.length > 0) {
+        savedFiles.forEach((file) => {
+          this.writeFile(file.path, file.content, false);
+        });
+        this.notify();
+      }
+    });
   }
 }
 

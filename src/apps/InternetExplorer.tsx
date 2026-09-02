@@ -37,7 +37,7 @@ export const InternetExplorer: React.FC<InternetExplorerProps> = ({
   const [showFavMenu, setShowFavMenu] = useState(false);
   const [pageTitle, setPageTitle] = useState('');
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const progressRef = useRef<NodeJS.Timeout | null>(null);
+  const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [progress, setProgress] = useState(0);
 
   const currentUrl = history[histIdx]?.url ?? src;

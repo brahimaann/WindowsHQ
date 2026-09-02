@@ -360,7 +360,7 @@ export const Explorer: React.FC<ExplorerProps> = ({ path: initialPath = 'C:/', w
                 item.type === 'dir'
                   ? '/images/icons/folder-32x32.png'
                   : ext === 'txt'
-                  ? '/images/icons/notepad-doc-32x32.png'
+                  ? '/images/icons/notepad-file-32x32.png'
                   : ext === 'wav'
                   ? '/images/icons/speaker-32x32.png'
                   : '/images/icons/folder-open-32x32.png';

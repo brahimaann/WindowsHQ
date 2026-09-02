@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useWindowManager, AppType } from '../wm/manager';
+import sound from '../utils/sound';
 
 export const Taskbar: React.FC = () => {
   const {
@@ -28,19 +29,7 @@ export const Taskbar: React.FC = () => {
   }, [isPplsStoryRunning]);
 
   const handlePagerClick = () => {
-    try {
-      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const osc = audioCtx.createOscillator();
-      const gainNode = audioCtx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(2000, audioCtx.currentTime);
-      gainNode.gain.setValueAtTime(0.08, audioCtx.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.005, audioCtx.currentTime + 0.15);
-      osc.connect(gainNode);
-      gainNode.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.15);
-    } catch (_) {}
+    sound.playDing();
 
     openWindow({
       id: 'ppls-local-echo',
@@ -56,14 +45,7 @@ export const Taskbar: React.FC = () => {
   // Update clock every second
   useEffect(() => {
     const updateClock = () => {
-      const now = new Date();
-      let hours = now.getHours();
-      const minutes = now.getMinutes().toString().padStart(2, '0');
-      const ampm = hours >= 12 ? 'PM' : 'AM';
-      hours = hours % 12;
-      hours = hours ? hours : 12; // 0 should be 12
-      const hoursStr = hours.toString().padStart(2, '0');
-      setTimeStr(`${hoursStr}:${minutes} ${ampm}`);
+      setTimeStr(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
     };
 
     updateClock();
@@ -127,10 +109,9 @@ export const Taskbar: React.FC = () => {
       <button
         ref={startButtonRef}
         onClick={handleStartButtonClick}
-        className={`start-button flex items-center h-[22px] px-1 m-[2px] font-bold text-black border-2 outline-none ${
-          startMenuOpen ? 'border-inset bg-[#e0e0e0]' : 'border-outset'
+        className={`start-button flex items-center h-[22px] px-1 m-[2px] font-bold text-black outline-none ${
+          startMenuOpen ? 'inset-deep' : ''
         }`}
-        style={{ borderStyle: 'solid' }}
       >
         <img
           src="/images/start-logo.png"
@@ -148,12 +129,11 @@ export const Taskbar: React.FC = () => {
           <button
             key={win.id}
             onClick={() => handleTaskClick(win.id, win.focused, win.isMinimized)}
-            className={`task flex items-center h-[22px] max-w-[150px] flex-1 px-1 m-[1px] text-xs text-black border-2 overflow-hidden text-ellipsis whitespace-nowrap outline-none ${
+            className={`task flex items-center h-[22px] max-w-[150px] flex-1 px-1 m-[1px] text-xs text-black overflow-hidden text-ellipsis whitespace-nowrap outline-none ${
               win.focused && !win.isMinimized
-                ? 'font-bold border-inset bg-[#dfdfdf] shadow-inner'
-                : 'border-outset'
+                ? 'font-bold inset-deep'
+                : ''
             }`}
-            style={{ borderStyle: 'solid' }}
           >
             {win.icon && (
               <img
@@ -202,8 +182,12 @@ export const Taskbar: React.FC = () => {
       {startMenuOpen && (
         <div
           ref={startMenuRef}
-          className="start-menu absolute left-1 bottom-[30px] w-[240px] flex bg-[#c0c0c0] border-2 border-outset z-[1000000] text-black"
-          style={{ borderStyle: 'solid' }}
+          className="start-menu outset-deep z-[1000000] text-black"
+          style={{
+            left: 0,
+            bottom: 'calc(100% + 1px)',
+            height: 'auto',
+          }}
         >
           {/* Side Logo bar */}
           <div className="start-menu-titlebar w-[30px]" />
